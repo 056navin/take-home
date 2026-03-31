@@ -1,0 +1,1110 @@
+{
+	"info": {
+		"_postman_id": "house-lead-api-collection",
+		"name": "Property Lead Management API",
+		"description": "Full API collection for the Property Lead Management backend.\n\n**How to use:**\n1. Run the \"Login (Admin)\" request first — it auto-saves the JWT token.\n2. All other requests use the saved token automatically.\n\n**Seeded Users:**\n- admin@house.com / password123 (Admin)\n- alice@house.com / password123 (Agent)\n- bob@house.com / password123 (Agent)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('token', jsonData.token);",
+									"pm.test('Login successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.token).to.be.a('string');",
+									"    pm.expect(jsonData.role).to.eql('ADMIN');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@house.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login with seeded admin credentials. The JWT token is auto-saved to the collection variable `token` for all subsequent requests."
+					}
+				},
+				{
+					"name": "Login (Agent - Alice)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('token', jsonData.token);",
+									"pm.test('Login successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.role).to.eql('AGENT');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"alice@house.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login as Agent Alice. Token is auto-saved."
+					}
+				},
+				{
+					"name": "Login — Invalid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Returns 400 for bad credentials', function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@house.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Should return 400 with error message."
+					}
+				}
+			]
+		},
+		{
+			"name": "Properties",
+			"item": [
+				{
+					"name": "List All Properties",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties?page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						},
+						"description": "List all properties with pagination."
+					}
+				},
+				{
+					"name": "Filter Properties — by City (Mumbai)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties?city=Mumbai&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties"],
+							"query": [
+								{ "key": "city", "value": "Mumbai" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						},
+						"description": "Filter properties by city = Mumbai."
+					}
+				},
+				{
+					"name": "Filter Properties — by City (Bangalore)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties?city=Bangalore&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties"],
+							"query": [
+								{ "key": "city", "value": "Bangalore" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Properties — by Status (AVAILABLE)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties?status=AVAILABLE&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties"],
+							"query": [
+								{ "key": "status", "value": "AVAILABLE" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Properties — by Bedrooms (3 BHK)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties?bedrooms=3&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties"],
+							"query": [
+								{ "key": "bedrooms", "value": "3" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Properties — Combined (Mumbai + 4 BHK + AVAILABLE)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties?city=Mumbai&bedrooms=4&status=AVAILABLE&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties"],
+							"query": [
+								{ "key": "city", "value": "Mumbai" },
+								{ "key": "bedrooms", "value": "4" },
+								{ "key": "status", "value": "AVAILABLE" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Property by ID (with lead counts)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties", "1"]
+						},
+						"description": "Returns property details with lead counts grouped by status."
+					}
+				},
+				{
+					"name": "Get Property — Not Found (404)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties/999",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties", "999"]
+						},
+						"description": "Should return 404 for non-existent property."
+					}
+				}
+			]
+		},
+		{
+			"name": "Leads",
+			"item": [
+				{
+					"name": "Create Lead — Valid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Lead created', function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('NEW');",
+									"    pm.collectionVariables.set('newLeadId', jsonData.id);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"buyerName\": \"Test Buyer\",\n    \"phone\": \"+911234567890\",\n    \"email\": \"testbuyer@email.com\",\n    \"propertyId\": 2,\n    \"priority\": \"HOT\",\n    \"notes\": \"Interested in sea-view apartment\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"]
+						},
+						"description": "Creates a new lead with status=NEW. Saves the lead ID for transition tests."
+					}
+				},
+				{
+					"name": "Create Lead — Duplicate (same phone + property)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Duplicate rejected with 409', function () {",
+									"    pm.response.to.have.status(409);",
+									"    pm.expect(pm.response.json().message).to.include('already exists');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"buyerName\": \"Duplicate Buyer\",\n    \"phone\": \"+919876543210\",\n    \"email\": \"dup@email.com\",\n    \"propertyId\": 1,\n    \"priority\": \"WARM\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"]
+						},
+						"description": "Phone +919876543210 already exists for property 1 (seeded). Should return 409 Conflict."
+					}
+				},
+				{
+					"name": "Create Lead — Property Not Available (BOOKED)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Rejected for booked property', function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"buyerName\": \"Someone\",\n    \"phone\": \"+919999988888\",\n    \"email\": \"someone@email.com\",\n    \"propertyId\": 5,\n    \"priority\": \"COLD\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"]
+						},
+						"description": "Property 5 may be BOOKED (after running full pipeline test). Should return 400."
+					}
+				},
+				{
+					"name": "Create Lead — Validation Error (missing fields)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Validation error returned', function () {",
+									"    pm.response.to.have.status(400);",
+									"    pm.expect(pm.response.json().error).to.eql('Validation Failed');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"buyerName\": \"\",\n    \"phone\": \"invalid\",\n    \"email\": \"not-an-email\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"]
+						},
+						"description": "Missing required fields and invalid formats. Should return 400 with field-level errors."
+					}
+				},
+				{
+					"name": "List All Leads",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/leads?page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Leads — by Status (NEW)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/leads?status=NEW&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"],
+							"query": [
+								{ "key": "status", "value": "NEW" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Leads — by Priority (HOT)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/leads?priority=HOT&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"],
+							"query": [
+								{ "key": "priority", "value": "HOT" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Leads — by Property ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/leads?property_id=1&page=0&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads"],
+							"query": [
+								{ "key": "property_id", "value": "1" },
+								{ "key": "page", "value": "0" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Lead by ID (with property details)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/leads/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "1"]
+						},
+						"description": "Returns lead with full property details embedded."
+					}
+				},
+				{
+					"name": "Update Lead — Priority & Notes",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"priority\": \"WARM\",\n    \"notes\": \"Buyer will visit next week\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "1"]
+						},
+						"description": "Only priority and notes can be updated — NOT status (use transition endpoint for that)."
+					}
+				},
+				{
+					"name": "Update Lead — Notes Only",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"notes\": \"Follow up call done. Very interested.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/2",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "2"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Lead Transitions",
+			"description": "Pipeline: NEW → CONTACTED → VISITED → BOOKED\nLOST can be set from any status except BOOKED.\nBOOKED and LOST are terminal — no further transitions.",
+			"item": [
+				{
+					"name": "✅ Valid: NEW → CONTACTED (Lead 1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Transition successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('CONTACTED');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"CONTACTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/1/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "1", "transition"]
+						},
+						"description": "Lead 1 is seeded as NEW. Should transition to CONTACTED."
+					}
+				},
+				{
+					"name": "✅ Valid: CONTACTED → VISITED (Lead 1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Transition successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('VISITED');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VISITED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/1/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "1", "transition"]
+						},
+						"description": "After previous test, Lead 1 is CONTACTED. Should transition to VISITED."
+					}
+				},
+				{
+					"name": "✅ Valid: VISITED → BOOKED (Lead 1) — auto-books property",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Transition to BOOKED successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('BOOKED');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"BOOKED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/1/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "1", "transition"]
+						},
+						"description": "After previous test, Lead 1 is VISITED. Should transition to BOOKED.\nProperty 1's status should also auto-update to BOOKED."
+					}
+				},
+				{
+					"name": "🔍 Verify: Property 1 is now BOOKED",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Property auto-booked', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('BOOKED');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties", "1"]
+						},
+						"description": "After booking Lead 1, Property 1 should have status=BOOKED."
+					}
+				},
+				{
+					"name": "❌ Invalid: NEW → VISITED (skip step — Lead 2)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Skip rejected with error message', function () {",
+									"    pm.response.to.have.status(400);",
+									"    var msg = pm.response.json().message;",
+									"    pm.expect(msg).to.include('Cannot move');",
+									"    pm.expect(msg).to.include('CONTACTED');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VISITED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/2/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "2", "transition"]
+						},
+						"description": "Lead 2 is NEW. Trying to skip to VISITED should fail.\nExpected error: Cannot move from 'NEW' to 'VISITED'. Next valid status is 'CONTACTED'."
+					}
+				},
+				{
+					"name": "❌ Invalid: NEW → BOOKED (skip to terminal — Lead 3)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Skip to terminal rejected', function () {",
+									"    pm.response.to.have.status(400);",
+									"    pm.expect(pm.response.json().message).to.include('Cannot move');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"BOOKED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/3/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "3", "transition"]
+						},
+						"description": "Lead 3 is NEW. Trying to jump to BOOKED should fail."
+					}
+				},
+				{
+					"name": "✅ Valid: CONTACTED → LOST (exit from pipeline — Lead 4)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('LOST transition from CONTACTED succeeds', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('LOST');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"LOST\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/4/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "4", "transition"]
+						},
+						"description": "Lead 4 is CONTACTED. LOST can be set from any non-terminal status."
+					}
+				},
+				{
+					"name": "✅ Valid: NEW → LOST (exit early — Lead 2)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('LOST from NEW succeeds', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('LOST');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"LOST\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/2/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "2", "transition"]
+						},
+						"description": "Lead 2 is NEW. LOST can be set from any status except BOOKED."
+					}
+				},
+				{
+					"name": "❌ Invalid: BOOKED → anything (terminal — Lead 10)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Terminal BOOKED rejects transition', function () {",
+									"    pm.response.to.have.status(400);",
+									"    pm.expect(pm.response.json().message).to.include('terminal');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"LOST\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/10/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "10", "transition"]
+						},
+						"description": "Lead 10 is BOOKED (seeded). No further transitions allowed."
+					}
+				},
+				{
+					"name": "❌ Invalid: LOST → anything (terminal — Lead 12)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Terminal LOST rejects transition', function () {",
+									"    pm.response.to.have.status(400);",
+									"    pm.expect(pm.response.json().message).to.include('terminal');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"CONTACTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leads/12/transition",
+							"host": ["{{baseUrl}}"],
+							"path": ["leads", "12", "transition"]
+						},
+						"description": "Lead 12 is LOST (seeded). No further transitions allowed."
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Dashboard Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Dashboard returns all fields', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('propertiesByStatus');",
+									"    pm.expect(json).to.have.property('leadsByStatus');",
+									"    pm.expect(json).to.have.property('leadsByPriority');",
+									"    pm.expect(json).to.have.property('conversionRate');",
+									"    pm.expect(json).to.have.property('totalLeads');",
+									"    pm.expect(json).to.have.property('bookedLeads');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/dashboard/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["dashboard", "summary"]
+						},
+						"description": "Returns: properties by status, leads by status, leads by priority, conversion rate (Booked / Total)."
+					}
+				}
+			]
+		},
+		{
+			"name": "Auth — No Token (401)",
+			"item": [
+				{
+					"name": "Access without JWT — should return 401/403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Unauthorized without token', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/properties",
+							"host": ["{{baseUrl}}"],
+							"path": ["properties"]
+						},
+						"description": "Accessing any protected endpoint without a JWT token should be rejected."
+					}
+				}
+			]
+		}
+	]
+}
+
