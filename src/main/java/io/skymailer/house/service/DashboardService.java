@@ -20,19 +20,18 @@ public class DashboardService {
     private final LeadRepository leadRepository;
 
     public DashboardSummary getSummary() {
-        // Properties by status
         Map<String, Long> propertiesByStatus = new LinkedHashMap<>();
         for (PropertyStatus s : PropertyStatus.values()) {
             propertiesByStatus.put(s.name(), propertyRepository.countByStatus(s));
         }
 
-        // Leads by status
+
         Map<String, Long> leadsByStatus = new LinkedHashMap<>();
         for (LeadStatus s : LeadStatus.values()) {
             leadsByStatus.put(s.name(), leadRepository.countByStatus(s));
         }
 
-        // Leads by priority
+
         Map<String, Long> leadsByPriority = new LinkedHashMap<>();
         for (LeadPriority p : LeadPriority.values()) {
             leadsByPriority.put(p.name(), leadRepository.countByPriority(p));
